@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小鸟运动</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        #game {
+            width: 800px;
+            height: 600px;
+            margin: 50px auto;
+            background: url(images/sky.png);
+            background-size: cover;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #brid {
+            width: 35px;
+            height: 25px;
+            background: url(images/birds.png) no-repeat center;
+            position: absolute;
+            left: 50px;
+            top: 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game">
+        <div id="brid"></div>
+    </div>
+</body>
+
+</html>
+<script>
+    // 1.移动的背景
+    // 2.运动的小鸟
+    // 3.移动的管道
+    //获取dom节点
+    var gameDom = document.getElementById("game");
+    var bridDom = document.getElementById("brid"); 
+    //初始化背景图x的值
+    var sky = {
+        x: 0
+    }
+    //初始化小鸟运动的值
+    var brid = {
+        x: bridDom.offsetLeft,
+        y: bridDom.offsetTop,
+        speedY: 0, //步长
+        speedX: 0
+    }
+    var myTimer = null;
+    var myTimer2 = null;
+    //游戏的状态
+    var run = true;
+    myTimer = setInterval(function () {
+        if (run) {
+            sky.x -= 5;
+            gameDom.style.backgroundPositionX = sky.x + "px";
+            //实现小鸟上下运动
+            brid.speedY += 1;
+            brid.y += brid.speedY;
+            //边界的判断
+            if (brid.y <= 0) {
+                brid.y = 0;
+                run = false;
+            } else if (brid.y + bridDom.offsetHeight >= 600) {
+                brid.y = 600 - bridDom.offsetHeight;
+                run = false;
+            }
+            bridDom.style.top = brid.y + "px";
+        } else {
+            alert("游戏结束");
+            clearInterval(myTimer);
+        }
+    }, 50)
+    //点击游戏盒子 让小鸟向上运动
+    gameDom.onclick = function () {
+        brid.speedY = -10;
+    }
+
+    //动态创建管道
+    function createPipe(positionX) {
+
+        var pipe = {};
+        //管道的位置
+        pipe.x = positionX;
+
+        //管道的高
+        pipe.topHeight = 200 + parseInt(Math.random() * 100);
+        //下方管道的高
+        pipe.bottomHeight = 600 - pipe.topHeight - 200;
+
+        //创建上方管道
+        var topPipe = document.createElement("div"); //管道的动态高度
+
+        topPipe.style.width = "50px";
+        topPipe.style.height = pipe.topHeight + "px";
+        topPipe.style.background = "url(./images/pipe2.png) no-repeat center bottom";
+        topPipe.style.position = "absolute";
+        topPipe.style.left = pipe.x + "px";
+        topPipe.style.top = "0px";
+        gameDom.appendChild(topPipe);
+
+        //创建下方管道
+        var bottomPipe = document.createElement("div");
+
+        bottomPipe.style.width = "50px";
+        bottomPipe.style.height = pipe.bottomHeight + "px";
+        bottomPipe.style.background = "url(./images/pipe1.png) no-repeat center top";
+        bottomPipe.style.position = "absolute";
+        bottomPipe.style.left = pipe.x + "px";
+        bottomPipe.style.bottom = "0px";
+
+        gameDom.appendChild(bottomPipe);
+
+        //管道动起来
+        myTimer2 = setInterval(function () {
+            if (run) {
+                pipe.x -= 2;
+                if (pipe.x <= 0) {
+                    pipe.x = 800;
+                }
+                topPipe.style.left = pipe.x + "px";
+                bottomPipe.style.left = pipe.x + "px";
+
+                //游戏的判断
+                var topCheck = brid.x + 35 > pipe.x && brid.x < pipe.x + 50 && brid.y < pipe
+                .topHeight; //小鸟触碰到上方的管道
+
+                if (topCheck) {
+                    run = false;
+                    clearInterval(myTimer);
+                    clearInterval(myTimer2);
+                    alert("over");
+                }
+            }
+        }, 50)
+
+    }
+
+    createPipe(400);
+    createPipe(600);
+    createPipe(800);
+    createPipe(1000);
+    createPipe(1200);
+</script>

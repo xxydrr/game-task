@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>满屏都是弹力球</title>
+</head>
+<body style="height: 1000px;"></body>
+</html>
+<script>
+    //有哪些类  球
+    class Ball{
+        //构造函数
+        constructor(ord,width,height,color,left1,top1,dLeft,dTop,speedX,speedY,timeSpace){
+            this.domObj = null; //存储dom属性的节点
+            this.ord = ord;
+            this.width = width;
+            this.height = height;
+            this.color = color;
+            this.left1 = left1;
+            this.top1 = top1;
+            this.dLeft = dLeft;
+            this.dTop = dTop;
+            this.speedX = speedX;
+            this.speedY = speedY;
+            this.timeSpace = timeSpace;
+            this.myTimer = null;
+        }
+
+        //方法
+        //创建外观
+        createUI() {
+          this.domObj = document.createElement("div");
+          this.domObj.innerHTML = this.ord;
+          //cssText相当于修改节点的整个css样式
+          this.domObj.style.cssText = "position:absolute;border-radius:50%;text-align:center;";
+          this.domObj.style.width = this.width + "px";
+          this.domObj.style.height = this.height + "px";
+          this.domObj.style.lineHeight = this.height + "px";
+          this.domObj.style.backgroundColor = this.color;
+          this.domObj.style.left = this.left1 + "px";
+          this.domObj.style.top = this.top1 + "px";
+          document.body.appendChild(this.domObj);
+        }
+        //运动
+        go() {
+            this.myTimer = setInterval(() => {
+
+                //1.改变运动的数据
+                this.left1 = this.left1 + this.dLeft * this.speedX;
+                this.top1 = this.top1 + this.dTop * this.speedY;
+                //2.处理边界  兼容写法
+                //获取可视窗口的距离
+                let clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+                let clientHeight = document.documentElement.clientHeight || document.body.clientHeight;
+                //获取滚动条滚动的距离
+                let scrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft;
+                let scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+                console.log(scrollTop);
+                
+                //左右边界
+                if(this.left1 <= 0 + scrollLeft){
+                    this.dLeft = 1;
+                    this.left1 = scrollLeft;
+                }else if(this.left1 >= (clientWidth - this.width) + scrollLeft){
+                    this.dLeft = -1;
+                    this.left1 = (clientWidth - this.width) + scrollLeft
+                }
+                //上下边界
+                if(this.top1 <= 0 + scrollTop){
+                    this.dTop = 1;
+                    this.top1 = scrollTop;
+                }else if(this.top1 >= (clientHeight - this.height) + scrollTop){
+                    this.dTop = -1;
+                    this.top1 = (clientHeight - this.height) + scrollTop
+                }
+
+
+                //改变球球节点的位置
+                this.domObj.style.left = this.left1 + "px";
+                this.domObj.style.top = this.top1 + "px";
+
+            }, this.timeSpace)
+        }
+
+    }
+    window.onload = function(){
+        
+        for(var i = 0; i < 100; i++){
+            //1.序号
+            //2.随机取弹力球的尺寸 (10-100)  width=height
+            let size = parseInt(Math.random()*90 + 10); 
+            //3.球球的随机颜色
+            let color = getColor();
+            //4.球球初始左边的距离，上边的距离
+            let left1 = parseInt(Math.random() * 1000);
+            let top1 = parseInt(Math.random() * 500);
+            //5.球球运动的方向 随机方向
+            let dLeft =parseInt(Math.random() * 2) == 0 ? 1 : -1;
+            let dTop = parseInt(Math.random() * 2) == 0 ? 1 : -1;
+            //6.球球运动的步长 (5-10px)
+            let speed = parseInt(Math.random() * 5 + 5);
+            //7.运动的时间间隔 (40-50ms)
+            let timeSpace =  parseInt(Math.random() * 40 + 10);
+
+            //实例化球球
+            let b =  new Ball(i+1,size,size,color,left1,top1,dLeft,dTop,speed,speed,timeSpace);
+            //创建球球外观方法
+            b.createUI();
+            //球球运动方法
+            b.go();
+        }
+        
+    }
+    //随机取色 rgb(r,g,b,1)
+    function getColor() {
+        let r = Math.floor(Math.random() * 256); 
+        let g = Math.floor(Math.random() * 256);
+        let b = Math.floor(Math.random() * 256);
+        return `rgb(${r},${g},${b},1)`
+    }
+   
+
+</script>

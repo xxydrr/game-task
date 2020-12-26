@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>轮播图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        ul,
+        li {
+            list-style: none;
+        }
+
+        .box {
+            width: 400px;
+            height: 350px;
+            border: 1px solid red;
+            margin: 100px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .outer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: 0.4s;
+        }
+
+        .outer li {
+            width: 400px;
+            height: 350px;
+            float: left;
+        }
+
+        .left,
+        .right {
+            /* display: block; */
+            width: 35px;
+            height: 35px;
+            display: none;
+        }
+
+        .left img,
+        .right img {
+            width: 100%;
+        }
+
+        .left {
+            position: absolute;
+            left: 20px;
+            top: 40%;
+        }
+
+        .right {
+            position: absolute;
+            right: 20px;
+            top: 40%;
+        }
+
+        .ulRadius {
+            position: absolute;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+        }
+
+        .liRadius {
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            border-radius: 50%;
+            float: left;
+            margin-left: 10px;
+        }
+
+        .liColor {
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <ul class="outer">
+            <li style="background-color: orange;">1</li>
+            <li style="background-color: orangered;">2</li>
+            <li style="background-color: palegreen;">3</li>
+            <li style="background-color: paleturquoise;">4</li>
+            <li style="background-color: palevioletred;">5</li>
+        </ul>
+        <a href="#" class="left"><img src="images/left.png" alt=""></a>
+        <a href="#" class="right"><img src="images/right.png" alt=""></a>
+    </div>
+</body>
+
+</html>
+<script>
+    //类（轮播图）
+    class Chart {
+        constructor(name, json) {
+            this.box = document.querySelector(name);
+            this.json = json;
+            //获取轮播图节点
+            this.outer = document.querySelector(".outer");
+            this.left = document.querySelector(".left");
+            this.right = document.querySelector(".right");
+            //数据
+            this.index = 0; //轮播图的下标
+            this.myTimer = null;
+            //调用初始化方法
+            this.init();
+        }
+        //轮播图初始化方法
+        init() {
+            //克隆第一张放到最后一张 cloneNode(true)克隆节点
+            let ulLi = this.outer.children[0].cloneNode(true);
+            this.outer.appendChild(ulLi);
+            //动态设置轮播图盒子ul的宽
+            this.outer.style.width = this.outer.children[0].offsetWidth * this.outer.children.length + "px";
+            //左右按钮事件控制
+            if (this.json.btnBoolean) {
+                //点击左右按钮
+                this.left.onclick = () => {
+                    this.leftGo();
+                }
+                this.right.onclick = () => {
+                    this.rightGo();
+                }
+            }
+            //控制是否自动播放
+            if (this.json.goBoolean) {
+                //自动播放
+                this.moveGo();
+                //判断是都显示左右按钮
+                if (this.json.btnBoolean) {
+                    this.left.style.display = "block";
+                    this.right.style.display = "block";
+                }
+                this.box.onmousemove = () => {
+                    clearInterval(this.myTimer);
+                }
+                this.box.onmouseout = () => {
+                    this.moveGo();
+                }
+            }
+            //控制是否显示圆点
+            if (this.json.radiusBoolean) {
+                //动态创建圆点
+                let ulDom = document.createElement("ul");
+                ulDom.className = "ulRadius";
+                for (let i = 0; i < this.outer.children.length - 1; i++) {
+                    let liDom = document.createElement("li");
+                    liDom.className = "liRadius";
+                    ulDom.appendChild(liDom);
+                }
+                this.box.appendChild(ulDom);
+                //点击圆点li方法
+                this.activeLi();
+            }
+        }
+        //点击左按钮方法
+        leftGo() {
+            this.index--;
+            if (this.index <= -1) {
+                this.index = this.outer.children.length - 1;
+                this.outer.style.transition = "0s";
+                this.outer.style.left = -(this.outer.children.length - 1) * this.outer.children[0].offsetWidth +
+                    "px";
+                this.index = this.outer.children.length - 2;
+            }
+            this.outer.style.left = -this.index * this.outer.children[0].offsetWidth + "px";
+            this.outer.style.transition = "0.4s";
+            //点击圆点
+            this.activeLi()
+        }
+        //点击右按钮方法
+        rightGo() {
+            this.index++;
+            if (this.index >= this.outer.children.length) {
+                this.index = 0;
+                this.outer.style.transition = "0s";
+                this.outer.style.left = 0;
+            }
+            this.outer.style.left = -this.index * this.outer.children[0].offsetWidth + "px";
+            this.outer.style.transition = "0.4s";
+            //点击圆点
+            this.activeLi();
+        }
+        //自动切换
+        moveGo() {
+            this.myTimer = setInterval(() => {
+                this.rightGo();
+            }, 1500)
+        }
+        //圆点对应每张图片
+        activeLi() {
+            let lis = document.querySelectorAll(".liRadius");
+
+            for (let i = 0; i < lis.length; i++) {
+                // lis[i].classList.remove("liColor");
+                if (i == this.index) {
+                    lis[i].classList.add("liColor")
+                } else {
+                    lis[i].classList.remove("liColor");
+                }
+                //特殊：最后一张的时候 让licolor加到第一个圆点上面
+                if (this.index == lis.length) {
+                    lis[0].classList.add("liColor");
+                }
+
+
+                lis[i].onclick = () => {
+                    this.index = i;
+                    for (let y = 0; y < lis.length; y++) {
+                        lis[y].classList.remove("liColor");
+                    }
+                    lis[i].classList.add("liColor");
+                    this.outer.style.left = -i * this.outer.children[0].offsetWidth + "px";
+                }
+
+            }
+
+        }
+
+    }
+
+    //json  控制轮播图功能
+    new Chart(".box", {
+        goBoolean: true, //控制是否自动轮播
+        radiusBoolean: true, //控制是否有圆点
+        btnBoolean: true //控制是否有左右切换按钮
+    });
+</script>

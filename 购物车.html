@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/cart.css" />
+    <title>购物车</title>
+</head>
+
+<body>
+    <div class="wrap">
+
+        <!-- 头部 -->
+        <div class="header">
+            <div class="container">
+                <h1>我的购物车</h1>
+            </div>
+        </div>
+        <!-- 购物车 -->
+        <div class="cart" id="cart">
+            <div class="header_row">
+                <div class="left checkAll" onclick="checkAll()" id="checkAll"><i>√</i></div>
+                <div class="left all">全选</div>
+                <div class="left name">商品名称</div>
+                <div class="left price">单价</div>
+                <div class="left number">数量</div>
+                <div class="left subtotal">小计</div>
+                <div class="left ctrl">操作</div>
+            </div>
+        </div>
+
+        <!-- 结算 -->
+        <div class="sum">
+            <div id="toSuccess">去结算</div>
+            <div id="sum_number">合计：<span id="sum">0元</span></div>
+        </div>
+
+        <!-- 商品列表 -->
+        <div class="productList">
+            <h2>商品列表</h2>
+            <ul id="ul"></ul>
+        </div>
+
+    </div>
+</body>
+
+</html>
+<script>
+    //商品列表数据
+    var productList = [{
+            imgUrl: "images/登山鞋.jpg",
+            proName: "登山鞋",
+            proPrice: 100,
+            proCom: 1.5
+        },
+        {
+            imgUrl: "images/冬裙.jpg",
+            proName: "冬裙",
+            proPrice: 150,
+            proCom: 1.7
+        },
+        {
+            imgUrl: "images/毛衣.jpg",
+            proName: "毛衣",
+            proPrice: 100,
+            proCom: 1.5
+        },
+        {
+            imgUrl: "images/棉服.jpg",
+            proName: "棉服",
+            proPrice: 200,
+            proCom: 1.6
+        },
+        {
+            imgUrl: "images/男包.jpg",
+            proName: "男包",
+            proPrice: 140,
+            proCom: 1.1
+        },
+        {
+            imgUrl: "images/男毛衣.jpg",
+            proName: "男毛衣",
+            proPrice: 170,
+            proCom: 1.5
+        },
+        {
+            imgUrl: "images/男棉服.jpg",
+            proName: "男棉服",
+            proPrice: 180,
+            proCom: 1.6
+        },
+        {
+            imgUrl: "images/男靴.jpg",
+            proName: "男靴",
+            proPrice: 140,
+            proCom: 1.1
+        },
+        {
+            imgUrl: "images/呢大衣.jpg",
+            proName: "呢大衣",
+            proPrice: 120,
+            proCom: 1.4
+        },
+        {
+            imgUrl: "images/牛仔裤.jpg",
+            proName: "牛仔裤",
+            proPrice: 110,
+            proCom: 1.9
+        }
+    ]
+    //获取id方法
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+    //获取商品列表节点
+    var ulDom = $("ul");
+    //获取购物车节点
+    var cartDom = $("cart");
+    //全选按钮状态
+    var boo = false;
+
+    //动态创建商品列表 li
+    for (var i = 0; i < productList.length; i++) {
+        //根据下标取出每条li的数据
+        var data = productList[i];
+        var li = document.createElement("li");
+        li.innerHTML += '<div class="productImg"><img src="' + data.imgUrl + '" alt=""></div>';
+        li.innerHTML += '<div class="productName">' + data.proName + '</div>';
+        li.innerHTML += '<div class="productPrice">' + data.proPrice + '元</div>';
+        li.innerHTML += '<div class="productRank">' + data.proCom + '万人好评</div>';
+        li.innerHTML += '<div class="addCart">加入购物车</div>';
+        //创建的li添加到ul里
+        ulDom.appendChild(li);
+    }
+
+    //获取加入购物车按钮
+    var addBtn = document.getElementsByClassName("addCart");
+    for (var i = 0; i < addBtn.length; i++) {
+        addBtn[i].index = i;
+        //点击当前添加购物车按钮取出当前这一条商品数据
+        addBtn[i].onclick = function () {
+            var data = productList[this.index];
+            //动态创建购物车列表
+            var cartDiv = document.createElement("div");
+            cartDiv.className = "cart_list";
+            cartDiv.innerHTML += '<div class="left check"><i>√</i></div>';
+            cartDiv.innerHTML += '<div class="left all"><img src="' + data.imgUrl + '"alt=""></div>';
+            cartDiv.innerHTML += '<div class="left name">' + data.proName + '</div>';
+            cartDiv.innerHTML += '<div class="left price">' + data.proPrice + '元</div>';
+            cartDiv.innerHTML +=
+                '<div class="left number changeNumber"><div class="number_d">-</div><div class="count">1</div><div class="number_a">+</div></div>';
+            cartDiv.innerHTML += '<div class="left subtotal">' + data.proPrice + '元</div>';
+            cartDiv.innerHTML += '<div class="left ctrl">x</div>';
+            cartDom.appendChild(cartDiv);
+
+            var checkAllDom = document.getElementById("checkAll").children[0];
+            checkAllDom.classList.remove("i_active2");
+            boo = false;
+
+
+            //获取删除按钮
+            var delBtn = cartDiv.lastChild;
+            delBtn.onclick = function () {
+                var result = confirm("确定删除吗？");
+                if (result) {
+                    cartDom.removeChild(cartDiv);
+                    getResult();
+                }
+            }
+            //获取复选框
+            var check = cartDiv.firstChild.getElementsByTagName("i")[0];
+           
+            check.onclick = function () {
+                if (check.className == "i_active") {
+                    check.classList.remove("i_active");
+                    checkAllDom.classList.remove("i_active2");
+                    boo = false;
+                    getResult();
+                } else {
+                    //添加类名
+                    check.classList.add("i_active");
+                    getResult();
+                }
+            }
+            //获取+号按钮
+            //parentElement 父节点
+            //previousElementSibling 上一个兄弟节点
+            //nextElementSibling     下一个兄弟节点
+            var addBtn = document.getElementsByClassName("number_a");
+            for (var i = 0; i < addBtn.length; i++) {
+                addBtn[i].onclick = function () {
+                    //获取数量值节点
+                    var prev = this.parentElement.children[1];
+                    var prevNum = parseInt(prev.innerHTML);
+                    prevNum++;
+                    prev.innerHTML = prevNum;
+                    //获取单价节点 
+                    var priceDom = this.parentElement.previousElementSibling;
+                    var priceNum = parseInt(priceDom.innerHTML);
+                    console.log(priceNum);
+                    //获取小计节点
+                    var subtotalDom = this.parentElement.nextElementSibling;
+                    console.log(subtotalDom);
+                    //小计结果
+                    subtotalDom.innerHTML = prevNum * priceNum + "元";
+                    getResult();
+                }
+
+            }
+            //获取减号按钮
+            var dBtn = document.getElementsByClassName("number_d");
+            for (var i = 0; i < dBtn.length; i++) {
+
+                dBtn[i].onclick = function () {
+                    console.log(this);
+                    //获取数量节点
+                    var nextDom = this.nextElementSibling;
+                    var nextNum = parseInt(nextDom.innerHTML);
+                    if (nextNum > 1) {
+                        nextNum--;
+                    }
+                    nextDom.innerHTML = nextNum;
+                    //获取单价节点
+                    var prevDom = this.parentElement.previousElementSibling;
+                    var prevNum = parseInt(prevDom.innerHTML);
+                    //获取小计节点
+                    var subtotalDom = this.parentElement.nextElementSibling;
+                    subtotalDom.innerHTML = nextNum * prevNum + "元";
+                    getResult();
+                }
+
+            }
+
+        }
+
+    }
+
+    //价格合计
+    function getResult() {
+        //获取所有选中的复选框
+        var checkSelect = document.getElementsByClassName("i_active");
+        console.log(checkSelect);
+        var sum = 0;
+        for (var i = 0; i < checkSelect.length; i++) {
+            //获取小计节点
+            var subtotalDom = checkSelect[i].parentElement.parentElement.children[5];
+
+            console.log(subtotalDom);
+            num = parseInt(subtotalDom.innerHTML)
+            sum = sum + num;
+            console.log(sum);
+            document.getElementById("sum").innerHTML = sum + "元";
+        }
+    }
+
+    //全选按钮
+    function checkAll() {
+        var checkAllDom = document.getElementById("checkAll").children[0];
+        var checkDom = document.getElementById("cart").getElementsByTagName("i");
+
+        for (var i = 1; i < checkDom.length; i++) {
+            if (!boo) {
+                checkDom[i].classList.add("i_active");
+                checkAllDom.classList.add("i_active2");
+            } else {
+                checkDom[i].classList.remove("i_active");
+                checkAllDom.classList.remove("i_active2");
+                document.getElementById("sum").innerHTML = "0元";
+            }
+        }
+        boo = !boo;
+
+        getResult();
+    }
+</script>

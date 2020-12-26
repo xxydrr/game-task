@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打砖块</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .game {
+            width: 900px;
+            height: 600px;
+            background: url(images/game.jpg) left top;
+            background-size: cover;
+            position: relative;
+            margin: 0 auto;
+            padding-top: 20px;
+            box-sizing: border-box;
+        }
+
+        #gameContent {
+            width: 600px;
+            height: 500px;
+            background: url(images/game_bg.gif) left top;
+            background-size: cover;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .brick {
+            width: 50px;
+            height: 20px;
+            position: absolute;
+        }
+
+        .ball {
+            width: 30px;
+            height: 30px;
+            background-color: aquamarine;
+            border-radius: 50%;
+            position: absolute;
+            left: 0px;
+            bottom: 30px;
+        }
+
+        .flap {
+            width: 150px;
+            height: 30px;
+            background-color: aqua;
+            position: absolute;
+            left: 0px;
+            bottom: 0;
+            border-radius: 25px;
+        }
+
+        .btn {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .btn button {
+            background-color: #3399FF;
+            width: 60px;
+            height: 30px;
+            color: #fff;
+            border: none;
+            outline: none;
+        }
+
+        .btn button:last-of-type {
+            margin-left: 20px;
+        }
+
+        #score {
+            padding: 10px 15px;
+            background-color: #fff;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+
+        #toast {
+            position: absolute;
+            left: 50%;
+            top: 30%;
+            transform: translateX(-50%);
+            padding: 5px 10px;
+            background-color: yellowgreen;
+            border-radius: 5px;
+            color: #fff;
+            display: none;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="game">
+        <div id="gameContent"></div>
+
+        <div class="btn">
+            <button id="start">开始</button>
+            <button id="reset">重置</button>
+        </div>
+        <div id="score">得分：0分</div>
+
+        <div id="toast">游戏结束</div>
+    </div>
+</body>
+
+</html>
+
+<script>
+    function $(id) {
+        return document.getElementById(id);
+    }
+    //获取需要操作的dom节点
+    var gameContent = $("gameContent");
+    var startBtn = $("start");
+    var resetBtn = $("reset");
+    var scoreDom = $("score");
+    var toastDom = $("toast");
+    //砖块的行数和列数
+    var rows = 6;
+    var cols = 12;
+    //用于定位的计算
+    var b_width = 50;
+    var b_height = 20;
+    //元素left、top的距离
+    var lf;
+    var tp;
+    //挡板、球球的节点
+    var ball;
+    var flap;
+    //存储定时器
+    var myTimer = null;
+    //球球的步长
+    var speedX = 1;
+    var speedY = -1;
+    //砖块存储
+    var bricks = [];
+    //分数
+    var score = 0;
+
+    //动态创建砖块
+    function creatBrick() {
+        //控制行数
+        for (var i = 0; i < rows; i++) {
+            //计算每个砖块的top
+            tp = i * b_height;
+            for (var j = 0; j < cols; j++) {
+                //计算每个砖块的left
+                lf = j * b_width
+                var brick = document.createElement("div");
+                brick.className = "brick";
+                brick.style.backgroundColor = getColor();
+                brick.style.left = lf + "px";
+                brick.style.top = tp + "px";
+                bricks.push(brick);
+                gameContent.appendChild(brick);
+            }
+        }
+    }
+    //随机取色 rag(0, 0, 0, 0.1)  256
+    function getColor() {
+        // return "rgb(255, 255, 255, 1)";
+        var r = Math.floor(Math.random() * 256);
+        var g = Math.floor(Math.random() * 256);
+        var b = Math.floor(Math.random() * 256);
+        var str = "rgb(" + r + "," + g + "," + b + ",1)";
+        return str;
+    }
+
+    function creatBallFlap() {
+        ball = document.createElement("div");
+        ball.className = "ball";
+        gameContent.appendChild(ball);
+
+        flap = document.createElement("div");
+        flap.className = "flap";
+        gameContent.appendChild(flap);
+    }
+    //球球运动
+    function changeBall() {
+        myTimer = setInterval(function () {
+            //计算球球的left和top
+            //实时获取球球的left + 步长
+            lf = ball.offsetLeft + speedX;
+            tp = ball.offsetTop + speedY;
+            
+            //砖块的消失
+            for(var i = 0; i < bricks.length; i++){
+                var bk = bricks[i];
+                //球球碰到砖块
+                //球球上边的距离 <= 当前的砖块上边的距离 + 当前的砖块自身的高度
+                //球球运动的左边的距离 + 自身宽度的一半 <= 当前砖块左边的距离 + 当前砖块自身的宽度
+                //球球运动左边的距离 + 自身宽度的一半 >= 当前砖块左边的距离
+                if(ball.offsetTop <= (bk.offsetTop + bk.offsetHeight) && (lf + ball.offsetWidth /2) <= (bk.offsetLeft + bk.offsetWidth)
+                && (lf + ball.offsetWidth / 2) >= bk.offsetLeft){
+                    bk.style.display = "none";
+                    //改变球球方向
+                    speedY = 1;
+                    //记分
+                    score++;
+                    scoreDom.innerHTML = "得分：" + score;
+                }
+
+            }
+
+            //碰到最上面
+            if (tp <= 0) {
+                speedY = 1;
+            } else if ((ball.offsetTop + ball.offsetHeight) >= flap.offsetTop && (ball.offsetLeft + ball
+                    .offsetWidth / 2) >= flap.offsetLeft &&
+                (ball.offsetLeft + ball.offsetWidth / 2) <= (flap.offsetLeft + flap.offsetWidth)) {
+                //球球碰到挡板改变方向向上运动
+                //球球上边的距离 + 球球自身的高度 >= 挡板上边的距离
+                //球球左边的距离 + 球球自身的宽度/2 >=  挡板左边的距离
+                //球球左边的距离 + q球球自身的宽度/2 <= 挡板左边的距离 + 挡板自身的宽
+                speedY = -1;
+            } else if (ball.offsetTop >= flap.offsetTop) {
+                //球球掉到挡板下方游戏结束
+                //球球上边的距离 > 挡板上边的距离
+                // alert("game over");
+                clearInterval(myTimer);
+                toastDom.style.display = "block";
+
+                // setTimeout(function(){
+                //     toastDom.style.display = "none";
+                // },2000)
+
+                return false;
+            }
+            //碰到最左边
+            if (lf <= 0) {
+                speedX = 1;
+            } else if (lf > gameContent.offsetWidth - ball.offsetWidth) {
+                //碰到最右边
+                // 球球运动左边的距离lf >= gamecontent的自身宽度（600） - ball自身的宽度（30）
+                speedX = -speedX;
+            }
+            //改变球球的left和top
+            ball.style.left = lf + "px";
+            ball.style.top = tp + "px";
+        }, 0)
+    }
+    //挡板运动
+    function changeFlap() {
+        window.onkeydown = function (e) {
+            var evt = e || window.event;
+            console.log(evt.keyCode)
+            if(evt.keyCode == 37){
+                //按下的是键盘的左键
+                lf = flap.offsetLeft - 30;
+                //边界判断
+                if(lf <= 0){
+                    lf = 0;
+                }
+                flap.style.left = lf + "px";
+            }else if(evt.keyCode == 39){
+                //按下的键盘是右键
+                lf = flap.offsetLeft + 30;
+                //边界的判断
+                //挡板左边的距离lf >= gameContent自身的宽 - flap自身的宽
+                if(lf >= gameContent.offsetWidth - flap.offsetWidth){
+                    lf = gameContent.offsetWidth - flap.offsetWidth
+                }
+                flap.style.left = lf + "px";
+            }
+        }
+    }
+
+
+
+    //点击开始按钮
+    startBtn.onclick = function () {
+        changeBall();
+    }
+    //重置按钮
+    reset.onclick = function () {
+        window.location.reload();
+    }
+
+
+    //页面加载完成
+    window.onload = function () {
+        //创建砖块
+        creatBrick();
+        //创建球球挡板
+        creatBallFlap();
+        //挡板动起来
+        changeFlap();
+    }
+</script>
